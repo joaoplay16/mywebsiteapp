@@ -13,6 +13,7 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,17 +27,22 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
-
+    private Snackbar  snackbar;
+    private SwipeRefreshLayout refreshLayout;
     private CoordinatorLayout coordinatorLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         coordinatorLayout = findViewById(R.id.coordinatorLayout);
-
-
-        ConexaoAsync conexaoAsync = new ConexaoAsync();
-        conexaoAsync.execute(temConexao());
+        refreshLayout = findViewById(R.id.swipeLayout);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+            executeAsync();
+            }
+    });
+        executeAsync();
     }
 
     BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -46,34 +52,33 @@ public class MainActivity extends AppCompatActivity {
 
             if(ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())
                     && primeiraVez == false){
-                    ConexaoAsync conexaoAsync = new ConexaoAsync();
-                    conexaoAsync.execute(temConexao());
+                    executeAsync();
                     primeiraVez = false;
             }
         }
     };
 
-    public boolean temConexao(){
+    private boolean temConexao(){
         ConnectivityManager cm = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = cm.getActiveNetworkInfo();
         return (cm != null && info != null && info.isConnected());
     }
 
-    public void alertaDeConexao(String mensagem){
-        Snackbar   snackbar =  Snackbar.make(coordinatorLayout,
+    private void alertaDeConexao(String mensagem){
+        snackbar =  Snackbar.make(coordinatorLayout,
                                                             mensagem, Snackbar.LENGTH_INDEFINITE);
         snackbar.setActionTextColor(Color.RED);
         View sbview = snackbar.getView();
         TextView textView = sbview.findViewById(android.support.design.R.id.snackbar_text);
         textView.setTextColor(Color.YELLOW);
-        snackbar.setAction("retry", new View.OnClickListener() {
+        snackbar.setAction("conectar", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ConexaoAsync conexaoAsync = new ConexaoAsync();
-                conexaoAsync.execute(temConexao());
+                executeAsync();
             }
         }).show();
+        refreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -89,12 +94,13 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(mReceiver);
     }
 
-    public void carregarPagina(){
+
+
+    private void carregarPagina(){
         WebView webView = findViewById(R.id.webview);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         webView.loadUrl("https://m.youtube.com");
-
         webView.setWebViewClient(new WebViewClient(){
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 view.loadUrl(url);
@@ -104,20 +110,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
-                getSupportActionBar().setTitle("Carregando");
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                getSupportActionBar().setTitle("APP");
             }
         });
     }
 
+    private void  executeAsync(){
+        ConexaoAsync conexaoAsync = new ConexaoAsync();
+        conexaoAsync.execute(temConexao());
+    }
 
-
-    public class ConexaoAsync extends AsyncTask<Boolean, Boolean, Boolean> {
+     class ConexaoAsync extends AsyncTask<Boolean, Boolean, Boolean> {
         @Override
         protected Boolean doInBackground(Boolean... booleans) {
             if(booleans[0]){
@@ -129,9 +136,8 @@ public class MainActivity extends AppCompatActivity {
                     urlc.setRequestProperty("Connection", "close");
                     urlc.setConnectTimeout(1500);
                     urlc.connect();
-                    Log.i("NETWORK", "Content Lenght " + urlc.getContentLength());
                     boolean conectado = (urlc.getResponseCode() == 204 &&
-                            urlc.getContentLength() == 0 && urlc!= null);
+                            urlc.getContentLength() == 0);
                     if(conectado){
                         publishProgress(true);
                     }else {
@@ -153,12 +159,12 @@ public class MainActivity extends AppCompatActivity {
             super.onProgressUpdate(values);
             if (values[0]) {
                 carregarPagina();
+                refreshLayout.setRefreshing(false);
+                if(snackbar != null) snackbar.dismiss();
             }else {
                 alertaDeConexao("Sem acesso à internet");
+                refreshLayout.setRefreshing(false);
             }
         }
     }
-
-
-
 }
