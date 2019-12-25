@@ -1,4 +1,4 @@
-package com.example.joao.myapplication;
+package com.appdate.mywebsiteapp;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,11 +10,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -23,15 +18,28 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.google.android.material.snackbar.Snackbar;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+/**
+ * @Autor João Pedro
+ *
+ *
+ * */
 public class MainActivity extends AppCompatActivity {
 
+
     /**
-    * {@code MYWEBSITE} substitua pela url do seu site.
-    * */
+     ** {@code MYWEBSITE} substitua pela url do seu site.
+     **/
     public static final String MYWEBSITE = "https://www.bbc.com";
 
     private Snackbar snackbar;
@@ -49,34 +57,35 @@ public class MainActivity extends AppCompatActivity {
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                if (webView.getUrl()!= null ){
                     webView.reload();
+                if (snackbar != null)
+                        snackbar.dismiss();
+                refreshLayout.setRefreshing(false);
             }
-        }
         });
+
         if (savedInstanceState != null) {
-                webView.restoreState(savedInstanceState);
+            webView.restoreState(savedInstanceState);
+        }else {
+            executeAsync();
         }
 
-        executeAsync();
         networkReceiver = new NetworkReceiver();
     }
 
-     class NetworkReceiver extends BroadcastReceiver{
-        boolean primeiraVez = false;
-         @Override
-         public void onReceive(Context context, Intent intent) {
-             if(ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())
-                     && !primeiraVez){
-                 executeAsync();
-                 primeiraVez = false;
-                 Log.d("RECEIVER", "Receiver chamado");
-             }
-         }
-     }
+    class NetworkReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())){
+                if (!temConexao())
+                    alertaDeConexao("Sem conexão");
+            }
+        }
+    }
 
     private boolean temConexao(){
-       ConnectivityManager cm = (ConnectivityManager)
+        ConnectivityManager cm = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo info = cm.getActiveNetworkInfo();
@@ -87,9 +96,9 @@ public class MainActivity extends AppCompatActivity {
         snackbar =  Snackbar.make(coordinatorLayout, mensagem, Snackbar.LENGTH_INDEFINITE);
         snackbar.setActionTextColor(Color.RED);
         View sbview = snackbar.getView();
-        TextView textView = sbview.findViewById(android.support.design.R.id.snackbar_text);
+        TextView textView = sbview.findViewById(com.google.android.material.R.id.snackbar_text);
         textView.setTextColor(Color.YELLOW);
-        snackbar.setAction("Conectar", new View.OnClickListener() {
+        snackbar.setAction(getString(R.string.connect), new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 executeAsync();
@@ -108,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         }
-
         return super.onKeyDown(keyCode, event);
     }
 
@@ -133,19 +141,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 view.loadUrl(url);
-                Log.d("URLS", url);
                 return false;
             }
         });
-            webView.loadUrl(MYWEBSITE);
+        webView.loadUrl(MYWEBSITE);
     }
 
     private void  executeAsync(){
-        ConexaoAsync conexaoAsync = new ConexaoAsync();
-        conexaoAsync.execute(temConexao());
+            ConexaoAsync conexaoAsync = new ConexaoAsync();
+            conexaoAsync.execute(temConexao());
     }
 
-     class ConexaoAsync extends AsyncTask<Boolean, Boolean, Boolean> {
+    class ConexaoAsync extends AsyncTask<Boolean, Boolean, Boolean> {
 
         @Override
         protected Boolean doInBackground(Boolean... booleans) {
@@ -171,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
                     publishProgress(false);
                 }
             } else {
-                alertaDeConexao("Nenhuma conexão ativa");
+                publishProgress(false);
             }
             return false;
         }
@@ -182,8 +189,9 @@ public class MainActivity extends AppCompatActivity {
             if (values[0]) {
                 carregarPagina();
                 if(snackbar != null) snackbar.dismiss();
+                refreshLayout.setRefreshing(false);
             }else {
-                alertaDeConexao("Sem acesso à internet");
+                alertaDeConexao(getString(R.string.connection_alert));
             }
         }
     }
@@ -193,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        this.registerReceiver(networkReceiver, intentFilter);
+        registerReceiver(networkReceiver, intentFilter);
     }
 
     @Override
@@ -206,9 +214,8 @@ public class MainActivity extends AppCompatActivity {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         if (webView != null) {
-            Log.d("URLS", "Salvando estado");
             webView.saveState(outState);
         }
     }
 
-    }
+}

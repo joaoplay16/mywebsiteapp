@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">Meu Site</string>
+    <string name="app_name">My Website</string>
+    <string name="connection_alert">Sem acesso à internet</string>
+    <string name="connect">Conectar</string>
 </resources>
