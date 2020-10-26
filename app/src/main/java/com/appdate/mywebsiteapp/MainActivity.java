@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      ** {@code MYWEBSITE} substitua pela url do seu site.
      **/
-    public static final String MYWEBSITE = "https://www.bbc.com";
+    public static final String MYWEBSITE = "http://sudoku.com.br/";
 
     private Snackbar snackbar;
     private WebView webView;
@@ -54,14 +54,11 @@ public class MainActivity extends AppCompatActivity {
         webView = findViewById(R.id.webview);
         coordinatorLayout = findViewById(R.id.coordinatorLayout);
         refreshLayout = findViewById(R.id.swipeLayout);
-        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                    webView.reload();
-                if (snackbar != null)
-                        snackbar.dismiss();
-                refreshLayout.setRefreshing(false);
-            }
+        refreshLayout.setOnRefreshListener(() -> {
+            webView.reload();
+            if (snackbar != null)
+                    snackbar.dismiss();
+            refreshLayout.setRefreshing(false);
         });
 
         if (savedInstanceState != null) {
@@ -78,13 +75,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if(ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())){
-                if (!temConexao())
-                    alertaDeConexao("Sem conexão");
+                if (!hasConnection())
+                    connectionAlert("Sem conexão");
             }
         }
     }
 
-    private boolean temConexao(){
+    private boolean hasConnection(){
         ConnectivityManager cm = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -92,17 +89,17 @@ public class MainActivity extends AppCompatActivity {
         return info != null && info.isConnected();
     }
 
-    private void alertaDeConexao(String mensagem){
+    private void connectionAlert(String mensagem){
         snackbar =  Snackbar.make(coordinatorLayout, mensagem, Snackbar.LENGTH_INDEFINITE);
         snackbar.setActionTextColor(Color.RED);
         View sbview = snackbar.getView();
         TextView textView = sbview.findViewById(com.google.android.material.R.id.snackbar_text);
         textView.setTextColor(Color.YELLOW);
-        snackbar.setAction(getString(R.string.connect), new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        snackbar.setAction(getString(R.string.connect), view -> {
+
                 executeAsync();
-            }
+                //webView.reload();
+
         }).show();
         refreshLayout.setRefreshing(false);
     }
@@ -126,6 +123,8 @@ public class MainActivity extends AppCompatActivity {
         settings.setAppCacheEnabled(true);
         settings.setAppCachePath(this.getApplicationContext().getCacheDir().getPath());
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(true);
         webView.setWebViewClient(new WebViewClient(){
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -149,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void  executeAsync(){
             ConexaoAsync conexaoAsync = new ConexaoAsync();
-            conexaoAsync.execute(temConexao());
+            conexaoAsync.execute(hasConnection());
     }
 
     class ConexaoAsync extends AsyncTask<Boolean, Boolean, Boolean> {
@@ -191,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
                 if(snackbar != null) snackbar.dismiss();
                 refreshLayout.setRefreshing(false);
             }else {
-                alertaDeConexao(getString(R.string.connection_alert));
+                connectionAlert(getString(R.string.connection_alert));
             }
         }
     }
