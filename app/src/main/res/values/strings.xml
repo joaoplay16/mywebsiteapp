@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Sudoku.com.br</string>
+    <string name="app_name">Teste Vocacional</string>
     <string name="connection_alert">Sem acesso à internet</string>
     <string name="connect">Conectar</string>
 </resources>

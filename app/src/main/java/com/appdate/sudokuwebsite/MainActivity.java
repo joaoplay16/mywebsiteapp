@@ -1,4 +1,4 @@
-package com.appdate.mywebsiteapp;
+package com.appdate.sudokuwebsite;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -31,6 +31,7 @@ import java.net.URL;
 
 /**
  * @Autor João Pedro
+ * facebook fb.com/joaoplay16
  *
  *
  * */
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      ** {@code MYWEBSITE} substitua pela url do seu site.
      **/
-    public static final String MYWEBSITE = "http://sudoku.com.br/";
+    public static final String MYWEBSITE = "http://testevocacional.com/";
 
     private Snackbar snackbar;
     private WebView webView;
@@ -123,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setAppCacheEnabled(true);
         settings.setAppCachePath(this.getApplicationContext().getCacheDir().getPath());
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        //settings.setBuiltInZoomControls(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         webView.setWebViewClient(new WebViewClient(){
@@ -166,11 +168,7 @@ public class MainActivity extends AppCompatActivity {
                     urlc.connect();
                     boolean conectado = (urlc.getResponseCode() == 204 &&
                             urlc.getContentLength() == 0);
-                    if(conectado){
-                        publishProgress(true);
-                    }else {
-                        publishProgress(false);
-                    }
+                    publishProgress(conectado);
                     Log.i("CONEXAO", "Abrindo conexão");
                 } catch (IOException e) {
                     Log.i("CONEXAO", "Error checking internet connection",e.getCause());
