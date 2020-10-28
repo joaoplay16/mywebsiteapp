@@ -1,4 +1,4 @@
-package com.appdate.sudokuwebsite;
+package com.appdate.sudoku;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
