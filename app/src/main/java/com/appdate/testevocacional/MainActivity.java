@@ -1,4 +1,4 @@
-package com.appdate.sudokuwebsite;
+package com.appdate.testevocacional;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setAppCacheEnabled(true);
         settings.setAppCachePath(this.getApplicationContext().getCacheDir().getPath());
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        //settings.setBuiltInZoomControls(true);
+        settings.setBuiltInZoomControls(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         webView.setWebViewClient(new WebViewClient(){
