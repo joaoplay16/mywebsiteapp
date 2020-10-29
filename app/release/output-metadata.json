@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.appdate.sudokuwebsite",
+  "applicationId": "com.appdate.testevocacional",
   "variantName": "processReleaseResources",
   "elements": [
     {
